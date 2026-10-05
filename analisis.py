@@ -19,12 +19,12 @@ def main():
     print("\nTemperatura promedio por planta (°C):")
     print(df.groupby("planta")["temperatura_c"].mean().round(2))
 
-    # 3. Temperatura máxima, sensor y fecha
-    fila_max = df.loc[df["temperatura_c"].idxmax()]
-    print("\nTemperatura máxima:")
-    print(f"  {fila_max['temperatura_c']} °C")
-    print(f"  Sensor: {fila_max['id_sensor']}")
-    print(f"  Fecha y hora: {fila_max['fecha_hora']}")
+    # 3. Temperatura máxima, sensor y fecha (se muestran todos los empates)
+    temp_max = df["temperatura_c"].max()
+    filas_max = df[df["temperatura_c"] == temp_max]
+    print(f"\nTemperatura máxima: {temp_max} °C ({len(filas_max)} lectura(s))")
+    for _, fila in filas_max.iterrows():
+        print(f"  Sensor: {fila['id_sensor']} | Fecha y hora: {fila['fecha_hora']}")
 
     # 4. Lecturas con temperatura mayor que 85 °C
     alertas = df[df["temperatura_c"] > UMBRAL_ALERTA]
@@ -35,7 +35,10 @@ def main():
         print("No hay alertas, así que no hay planta con más alertas.")
     else:
         conteo = alertas["planta"].value_counts()
-        print(f"Planta con más alertas: {conteo.idxmax()} ({conteo.max()} alertas)")
+        maximo = conteo.max()
+        # si hay empate, se muestran todas las plantas empatadas
+        for planta in conteo[conteo == maximo].index:
+            print(f"Planta con más alertas: {planta} ({maximo} alertas)")
 
     # 6. Exportar alertas con las columnas originales
     RUTA_ALERTAS.parent.mkdir(exist_ok=True)
